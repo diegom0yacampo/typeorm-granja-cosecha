@@ -1,0 +1,74 @@
+5. MODIFICAR LA CLAVE FORÁNEA  (PATCH /cosechas/:id/granja)
+============================================================
+
+Finalidad: pasar la cosecha 4 de la granja 1 a la granja 2 (que existe) cambiando ID_GRANJA.
+
+--- ANTES ---
+SQL> SELECT * FROM "GRANJA" ORDER BY "ID"
+ ID | NOMBRE          
+----+------------------
+ 1  | Granja del Sol  
+ 2  | Granja del Monte
+(2 filas)
+
+SQL> SELECT c."ID", c."NOMBRE", c."ID_GRANJA", g."NOMBRE" AS "GRANJA" FROM "COSECHA" c INNER JOIN "GRANJA" g ON g."ID" = c."ID_GRANJA" WHERE c."ID" = 4
+ ID | NOMBRE              | ID_GRANJA | GRANJA        
+----+---------------------+-----------+----------------
+ 4  | Cosecha de pimiento | 1         | Granja del Sol
+(1 fila)
+
+--- PETICIÓN ---
+$ curl -i -X 'PATCH' 'http://localhost:3000/cosechas/4/granja' -H 'Content-Type: application/json' -d '{"principalId":2}'
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Access-Control-Allow-Origin: *
+Content-Type: application/json; charset=utf-8
+Content-Length: 42
+ETag: W/"2a-mp76xueJwuBg6SC3F/3HJjTMrec"
+Date: Mon, 09 Nov 2026 17:34:16 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"generatedMaps":[],"raw":[],"affected":1}
+
+--- DESPUÉS ---
+SQL> SELECT c."ID", c."NOMBRE", c."ID_GRANJA", g."NOMBRE" AS "GRANJA" FROM "COSECHA" c INNER JOIN "GRANJA" g ON g."ID" = c."ID_GRANJA" WHERE c."ID" = 4
+ ID | NOMBRE              | ID_GRANJA | GRANJA          
+----+---------------------+-----------+------------------
+ 4  | Cosecha de pimiento | 2         | Granja del Monte
+(1 fila)
+
+$ curl -i 'http://localhost:3000/cosechas/granja/2'
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Access-Control-Allow-Origin: *
+Content-Type: application/json; charset=utf-8
+Content-Length: 204
+ETag: W/"cc-+m3AkZjXNSxyele/6flwb7qc878"
+Date: Mon, 09 Nov 2026 17:34:16 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+[{"id":3,"nombre":"Cosecha de tomate · nuevo","kilos":300,"granja":{"id":2,"nombre":"Granja del Monte"}},{"id":4,"nombre":"Cosecha de pimiento","kilos":175,"granja":{"id":2,"nombre":"Granja del Monte"}}]
+
+--- Caso de error: la granja 99 no existe, la FK no cambia ---
+$ curl -i -X 'PATCH' 'http://localhost:3000/cosechas/4/granja' -H 'Content-Type: application/json' -d '{"principalId":99}'
+HTTP/1.1 404 Not Found
+X-Powered-By: Express
+Access-Control-Allow-Origin: *
+Content-Type: application/json; charset=utf-8
+Content-Length: 73
+ETag: W/"49-3IZpt7yfjoDgnuWKqVWdMO9VKeY"
+Date: Mon, 09 Nov 2026 17:34:17 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"message":"No existe la granja 99","error":"Not Found","statusCode":404}
+
+SQL> SELECT "ID", "ID_GRANJA" FROM "COSECHA" WHERE "ID" = 4
+ ID | ID_GRANJA
+----+-----------
+ 4  | 2        
+(1 fila)
+
+Resultado: la cosecha 4 conserva su ID y ahora pertenece a 'Granja del Monte' (ID_GRANJA = 2).
