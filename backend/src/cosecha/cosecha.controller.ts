@@ -33,19 +33,16 @@ export class CosechaController {
     return this.cosechaService.countByGranja();
   }
 
-  // Añadido: GET /cosechas/por-granja?nombre=... lista las cosechas de las granjas con ese nombre
   @Get("por-granja")
   findByNombreGranja(@Query("nombre") nombre: string) {
     return this.cosechaService.findByNombreGranja(nombre);
   }
 
-  // Añadido: POST /cosechas añade una cosecha, que luego se lista con GET /cosechas
   @Post()
   crear(@Body() body: { nombre: string; kilos: number; granja: { id: number } }) {
     return this.cosechaService.crear(body);
   }
 
-  // Añadido: PATCH /cosechas/:id modifica un campo de la cosecha
   @Patch(":id")
   modificar(
     @Param("id", ParseIntPipe) id: number,
@@ -54,13 +51,11 @@ export class CosechaController {
     return this.cosechaService.modificar(id, body);
   }
 
-  // Añadido: DELETE /cosechas/:id elimina una cosecha
   @Delete(":id")
   eliminar(@Param("id", ParseIntPipe) id: number) {
     return this.cosechaService.eliminar(id);
   }
 
-  // Añadido: PATCH /cosechas/:id/granja modifica la clave foránea
   @Patch(":id/granja")
   cambiarGranja(
     @Param("id", ParseIntPipe) id: number,
